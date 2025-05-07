@@ -913,6 +913,9 @@ int main(int argc, char* argv[]) {
 
     double seconds = difftime(future, now);
     int days = (int)(seconds / (60 * 60 * 24));
+	if (days < 0) {
+		days = 0;
+	}
     top = C2D_CreateScreenTarget(GFX_TOP, GFX_LEFT);
     bottom = C2D_CreateScreenTarget(GFX_BOTTOM, GFX_LEFT);
  	C2D_TextBuf memBuf = C2D_TextBufNew(128);
