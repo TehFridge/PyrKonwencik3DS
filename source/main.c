@@ -18,7 +18,7 @@
 #include <unistd.h>
 #include "buttons.h"
 #include "cwav_shit.h"
-#include "csv.h"
+#include "request.h"
 
 #define MAX_SPRITES   1
 #define fmin(a, b) ((a) < (b) ? (a) : (b))
@@ -151,7 +151,20 @@ bool safe_append(char** dest, size_t* capacity, const char* addition) {
     strcat(*dest, addition);
     return true;
 }
-
+bool is_network_connected() {
+    if (R_FAILED(acInit())) {
+        return false;
+    }
+    u32 status;
+    bool connected = false;
+    
+    if (R_SUCCEEDED(ACU_GetStatus(&status))) {
+        connected = (status == 3);
+    }
+    acExit();
+    
+    return connected;
+}
 char* format_title_with_newlines_utf8(const char* text, int maxCharsPerLine) {
     if (!text) return NULL;
 
@@ -190,6 +203,7 @@ char* format_title_with_newlines_utf8(const char* text, int maxCharsPerLine) {
     free(cleanText);
     return result;
 }
+extern int tileCount;
 // Split text into three parts by finding spaces closest to 1/3 and 2/3 of the length
 bool split_text_into_three(const char* text, char** out1, char** out2, char** out3) {
     size_t len = strlen(text);
@@ -225,7 +239,10 @@ int offset_saturday = 0;
 int offset_sunday = 0;
 int offset_ulub = 0;
 int offset_caly;
-int favorites[810]; // max 100 entries
+char favorites[822][256];
+int sobota_offset = 0;
+int niedziela_offset = 0;
+int fav_count = 0;
 void read_entry(){
 	textOffset = 0;
 	C2D_TextBufClear(description_Buf);
@@ -233,12 +250,24 @@ void read_entry(){
 	if (currentday == 0) {
 		offset_caly = (selectioncodelol - 3) + offset_friday;
 	} else if (currentday == 1) {
-		offset_caly = (selectioncodelol - 3) + 202 + offset_saturday;
+		offset_caly = (selectioncodelol - 3) + sobota_offset + offset_saturday;
 	} else if (currentday == 2) {
-		offset_caly = (selectioncodelol - 3) + 562 + offset_sunday;
+		offset_caly = (selectioncodelol - 3) + niedziela_offset + offset_sunday;
 	} else if (currentday == 3) {
-		offset_caly = favorites[selectioncodelol - 3 + offset_ulub];
+		const char *fav_title = favorites[selectioncodelol - 3 + offset_ulub];
+		offset_caly = -1;
+		for (int i = 0; i < tileCount; i++) {
+			if (strcmp(tytul_table[i], fav_title) == 0) {
+				offset_caly = i;
+				break;
+			}
+		}
+		if (offset_caly == -1) {
+			printf("Favorite title not found: %s\n", fav_title);
+			return;
+		}
 	}
+
 	if (strlen(opis_table[offset_caly]) > 871) {
 		has_sec_page = true;
 		char *part1, *part2, *part3;
@@ -292,9 +321,10 @@ int sunday_ent;
 float frlimit;
 float stlimit;
 float snlimit;
-extern int tileCount;
+
 int max_scrollY = 0;
 bool can_further = false;
+
 void load_friday_page() {
 	removeButtonEntries(809);
 	C2D_TextBufClear(entry_name_Buf);	
@@ -327,9 +357,9 @@ void load_saturday_page() {
 	int furthercounter = 0;
 	can_further = false;
 	for (int i = 0; i < 6; i++) {
-		if (strcmp(data_table[i + 202 + offset_saturday], "14.06 sobota") == 0) {
+		if (strcmp(data_table[i + sobota_offset + offset_saturday], "14.06 sobota") == 0) {
 			buttonsy[i + 3] = (Button){99999, 99999, 309, 70, entrybutton, entry_pressed, false, 4, 78, 78, 78, 78, 1.0f, read_entry};
-			const char* title = tytul_table[i + 202 + offset_saturday];
+			const char* title = tytul_table[i + sobota_offset + offset_saturday];
 			if (title != NULL && title[0] != '\0') {
 				C2D_TextParse(&g_entry_nameText[i], entry_name_Buf, title);
 			} else {
@@ -352,9 +382,9 @@ void load_sunday_page() {
 	int furthercounter = 0;
 	can_further = false;
 	for (int i = 0; i < 6; i++) {
-		if (strcmp(data_table[i + 562 + offset_sunday], "15.06 niedziela") == 0) {
+		if (strcmp(data_table[i + niedziela_offset + offset_sunday], "15.06 niedziela") == 0) {
 			buttonsy[i + 3] = (Button){99999, 99999, 309, 70, entrybutton, entry_pressed, false, 4, 78, 78, 78, 78, 1.0f, read_entry};
-			const char* title = tytul_table[i + 562 + offset_sunday];
+			const char* title = tytul_table[i + niedziela_offset + offset_sunday];
 			if (title != NULL && title[0] != '\0') {
 				C2D_TextParse(&g_entry_nameText[i], entry_name_Buf, title);
 			} else {
@@ -370,24 +400,23 @@ void load_sunday_page() {
 	}
 	max_scrollY -= 190;
 }
-void save_favorites(const int *indices, int count, const char *filename) {
+void save_favorites(char favorites[][256], int count, const char *filename) {
     json_t *array = json_array();
     for (int i = 0; i < count; i++) {
-        json_array_append_new(array, json_integer(indices[i]));
+        json_array_append_new(array, json_string(favorites[i]));
     }
 
     json_dump_file(array, filename, JSON_INDENT(2));
     json_decref(array);
 }
-int load_favorites_from_json(const char *filename, int *favorites, int max_count) {
-    // Open the JSON file for reading
+
+int load_favorites_from_json(const char *filename, char favorites[][256], int max_count) {
     FILE *f = fopen(filename, "r");
     if (!f) {
         printf("Error opening file for reading.\n");
         return 0;
     }
 
-    // Parse the JSON file into a JSON object
     json_error_t error;
     json_t *json_array = json_loadf(f, 0, &error);
     fclose(f);
@@ -397,23 +426,24 @@ int load_favorites_from_json(const char *filename, int *favorites, int max_count
         return 0;
     }
 
-    // Load the integers from the JSON array into the C array
     size_t index;
     json_t *value;
     int count = 0;
 
     json_array_foreach(json_array, index, value) {
         if (count >= max_count) break;
-        if (json_is_integer(value)) {
-            favorites[count++] = (int)json_integer_value(value);
+        if (json_is_string(value)) {
+            const char *title = json_string_value(value);
+            strncpy(favorites[count], title, 127);
+            favorites[count][127] = '\0';
+            count++;
         }
     }
 
-    // Clean up
     json_decref(json_array);
     return count;
 }
-int fav_count = 0;
+
 void load_ulubione_buttons(const char *filename) {
     json_error_t error;
     json_t *root = json_load_file(filename, 0, &error);
@@ -431,39 +461,39 @@ void load_ulubione_buttons(const char *filename) {
     size_t index;
     json_t *value;
     int loaded = 0;
-
-    // Adjust the starting index to apply an offset of 6
     int offset = offset_ulub;
 
-    // Start processing the JSON array from the offset index
     json_array_foreach(root, index, value) {
-        if (index < offset) continue; // Skip the first 'offset' elements
+        if (index < offset) continue;
+        if (loaded >= 6) break;
+        if (!json_is_string(value)) continue;
 
-        if (loaded >= 6) break;  // Only process 6 elements
+        const char *fav_title = json_string_value(value);
 
-        if (!json_is_integer(value)) continue;
+        // Find the title in tytul_table
+        int found_index = -1;
+        for (int i = 0; i < tileCount; i++) {
+            if (strcmp(tytul_table[i], fav_title) == 0) {
+                found_index = i;
+                break;
+            }
+        }
 
-        int entryIndex = json_integer_value(value);
-        if (entryIndex < 0 || entryIndex >= tileCount) continue;
+        if (found_index == -1) continue;
 
         buttonsy[loaded + 3] = (Button){
             99999, 99999, 309, 70, entrybutton, entry_pressed, false,
             4, 78, 78, 78, 78, 1.0f, read_entry
         };
 
-        const char *title = tytul_table[entryIndex];
-        if (title && title[0] != '\0') {
-            C2D_TextParse(&g_entry_nameText[loaded], entry_name_Buf, title);
-        } else {
-            C2D_TextParse(&g_entry_nameText[loaded], entry_name_Buf, "Brak Tytułu :(");
-        }
-
+        const char *title = tytul_table[found_index];
+        C2D_TextParse(&g_entry_nameText[loaded], entry_name_Buf,
+                      (title && title[0] != '\0') ? title : "Brak Tytułu :(");
         C2D_TextOptimize(&g_entry_nameText[loaded]);
         max_scrollY += 70;
         loaded++;
     }
 
-    // If fewer than 6 were loaded, optionally fill in blank buttons
     for (int i = loaded; i < 6; i++) {
         buttonsy[i + 3] = (Button){
             99999, 99999, 309, 70, entrybutton, entry_pressed, true,
@@ -478,6 +508,7 @@ void load_ulubione_buttons(const char *filename) {
 
     json_decref(root);
 }
+
 
 void load_ulubione() {
 	removeButtonEntries(809);
@@ -504,100 +535,178 @@ void load_ulubione() {
 	}
 	max_scrollY -= 190;
 }
+void load_current_program() {
+    struct curl_slist *headers = NULL;
+    headers = curl_slist_append(headers, "Content-Type: application/json");
+    headers = curl_slist_append(headers, "User-Agent: okhttp/4.12.0");
+    headers = curl_slist_append(headers, "Accept: application/json");
+
+    refresh_data("https://core.pyrkon.pl/wp-json/pyrkon/v1/planner-items-search?type=standard&selectedlang=all&time=&offset=1&lang=pl&site_id=12&api_token=1c57cd904562dc3691b101d2c338f484&offset=0", "", headers);
+
+    // Remove all "<br />\r\n" from the global_response data
+    const char *needle = "<br />\r\n";
+    char *cleaned = malloc(global_response.size + 1);
+    if (!cleaned) return;
+
+    char *src = global_response.data;
+    char *dst = cleaned;
+
+    // Iterate over the response data
+    while (*src) {
+        // If we find the "<br />\r\n", skip it
+        if (strncmp(src, needle, strlen(needle)) == 0) {
+            src += strlen(needle);  // Skip this tag
+        } else {
+            *dst++ = *src++;        // Copy the rest of the characters
+        }
+    }
+    *dst = '\0';
+
+    // Parse the cleaned JSON
+    json_error_t error;
+    json_t *root = json_loads(cleaned, 0, &error);
+    free(cleaned);
+
+    if (!root) {
+        printf("JSON parse error: %s\n", error.text);
+        return;
+    }
+
+    json_dump_file(root, "/3ds/my_pyrkon.json", JSON_INDENT(2));
+    json_decref(root);
+}
+// Function to remove all "<br />\r\n" tags from a string and replace with a newline
+void remove_br_tags(char *str) {
+    const char *needle = "<br />\r\n";
+    char *src = str;
+    char *dst = str;
+
+    while (*src) {
+        // If we find "<br />\r\n", replace it with a newline
+        if (strncmp(src, needle, strlen(needle)) == 0) {
+            *dst++ = '\n';  // Insert a newline instead of "<br />\r\n"
+            src += strlen(needle);  // Skip over the "<br />\r\n"
+        } else {
+            *dst++ = *src++;  // Copy the character from source to destination
+        }
+    }
+
+    *dst = '\0';  // Null-terminate the cleaned string
+}
+void replace_ampersands(char *str) {
+    char *src = str;
+    char *dst = str;
+
+    while (*src) {
+        if (strncmp(src, "&amp;", 5) == 0) {
+            *dst++ = '&';
+            src += 5;
+        } else {
+            *dst++ = *src++;
+        }
+    }
+    *dst = '\0';
+}
 
 void process_program() {
-
-    // Parse the JSON string
-	json_t *root = json_load_file("romfs:/my_pyrkon.json", 0, NULL);
     json_error_t error;
+    json_t *root = json_load_file("/3ds/my_pyrkon.json", 0, &error);
     if (!root) {
         fprintf(stderr, "Error: %s\n", error.text);
+        return;
+    }
+
+    json_t *data_array = json_object_get(root, "data");
+    if (!json_is_array(data_array)) {
+        fprintf(stderr, "Error: 'data' is not an array.\n");
+        json_decref(root);
+        return;
     }
 
     size_t index;
     json_t *entry;
     int entry_count = 0;
-	
-    // Iterate through the JSON array
-    json_array_foreach(root, index, entry) {
-        // Extract values for each column
-        const char *data = json_string_value(json_object_get(entry, "Data"));
-        const char *godzina = json_string_value(json_object_get(entry, "Godzina"));
-        const char *prowadzacy = json_string_value(json_object_get(entry, "Prowadzący"));
-		const char *tytul = json_string_value(json_object_get(entry, "Tytuł"));
-		char *formatted = format_title_with_newlines_utf8(tytul, 40);
-        const char *opis = json_string_value(json_object_get(entry, "Opis"));
-		char *formatted2 = format_title_with_newlines_utf8(opis, 46);
-        const char *sala = json_string_value(json_object_get(entry, "Sala"));
-        const char *strefa = json_string_value(json_object_get(entry, "Strefa"));
 
-        // Store these values in the corresponding tables
+    int piatek_count = 0;
+    int sobota_count = 0;
+    int niedziela_count = 0;
+
+    json_array_foreach(data_array, index, entry) {
+        const char *data = json_string_value(json_object_get(entry, "date"));
+        const char *godzina = json_string_value(json_object_get(entry, "range"));
+		const char *tytul = json_string_value(json_object_get(entry, "title"));
+		char *cleaned_tytul = strdup(tytul);  // Copy title for cleaning
+		remove_br_tags(cleaned_tytul);
+		replace_ampersands(cleaned_tytul);
+		char *formatted = format_title_with_newlines_utf8(cleaned_tytul, 40);
+
+        const char *opis = json_string_value(json_object_get(entry, "description"));
+        char *cleaned_opis = strdup(opis);  // Create a copy of the description for cleaning
+
+        // Remove <br />\r\n tags from the description and replace with a newline
+        remove_br_tags(cleaned_opis);
+
+        // Format the cleaned description
+        char *formatted2 = format_title_with_newlines_utf8(cleaned_opis, 46);
+
+        const char *sala = json_string_value(json_object_get(entry, "room"));
+
+        json_t *blocks = json_object_get(entry, "blocks");
+        const char *strefa = json_string_value(json_object_get(blocks, "list"));
+
+        const char *prowadzacy = "";
+        json_t *speakers = json_object_get(entry, "speakers");
+        json_t *list = json_object_get(speakers, "list");
+
+        char prow_buffer[256] = "";
+        if (json_is_object(list)) {
+            const char *key;
+            json_t *val;
+            size_t speaker_index = 0;
+            json_object_foreach(list, key, val) {
+                const char *name = json_string_value(json_object_get(val, "title"));
+                if (name) {
+                    if (speaker_index > 0) {
+                        strncat(prow_buffer, ", ", sizeof(prow_buffer) - strlen(prow_buffer) - 1);
+                    }
+                    strncat(prow_buffer, name, sizeof(prow_buffer) - strlen(prow_buffer) - 1);
+                    speaker_index++;
+                }
+            }
+            prowadzacy = prow_buffer;
+        }
+
         if (entry_count < MAX_ENTRIES) {
             snprintf(data_table[entry_count], sizeof(data_table[entry_count]), "%s", data);
-			// if (strcmp(data_table[entry_count], "13.06 piątek") == 0) {
-				// buttonsy[entry_count + 3] = (Button){99999, 99999, 309, 70, entrybutton, entry_pressed, false, 4, 78, 78, 78, 78, 1.0f, read_entry};
-				// friday_ent += 1;
-				// frlimit += 70;
-			// } else if (strcmp(data_table[entry_count], "14.06 sobota") == 0) {
-				// buttonsy[entry_count + 3] = (Button){99999, 99999, 309, 70, entrybutton, entry_pressed, false, 5, 78, 78, 78, 78, 1.0f, read_entry};
-				// saturd_ent += 1;
-				// stlimit += 70;
-			// } else if (strcmp(data_table[entry_count], "15.06 niedziela") == 0) {
-				// buttonsy[entry_count + 3] = (Button){99999, 99999, 309, 70, entrybutton, entry_pressed, false, 6, 78, 78, 78, 78, 1.0f, read_entry};
-				// sunday_ent += 1;
-				// snlimit += 70;
-			// }
             snprintf(godzina_table[entry_count], sizeof(godzina_table[entry_count]), "%s", godzina);
             snprintf(prowadzacy_table[entry_count], sizeof(prowadzacy_table[entry_count]), "%s", prowadzacy);
-            snprintf(tytul_table[entry_count], sizeof(tytul_table[entry_count]), "%s", formatted); 
-            snprintf(opis_table[entry_count], sizeof(opis_table[entry_count]), "%s", formatted2); 
+            snprintf(tytul_table[entry_count], sizeof(tytul_table[entry_count]), "%s", formatted);
+            snprintf(opis_table[entry_count], sizeof(opis_table[entry_count]), "%s", formatted2);
             snprintf(sala_table[entry_count], sizeof(sala_table[entry_count]), "%s", sala);
             snprintf(strefa_table[entry_count], sizeof(strefa_table[entry_count]), "%s", strefa);
-			printf("Entry [%d]: '%s'\n", entry_count, data_table[entry_count]);
-			tileCount++;
+
+            printf("Entry [%d]: '%s'\n", entry_count, data_table[entry_count]);
             entry_count++;
+            tileCount++;
+
+            if (strstr(data, "piątek")) {
+                piatek_count++;
+            } else if (strstr(data, "sobota")) {
+                sobota_count++;
+            } else if (strstr(data, "niedziela")) {
+                niedziela_count++;
+            }
         }
-		free(formatted);  // when done
-		free(formatted2);
+
+		free(formatted);
+		free(cleaned_tytul);
+        free(formatted2);
+        free(cleaned_opis);  // Don't forget to free the cleaned description
     }
 
-    // // After storing, print the tables (for verification)
-    // printf("Table 1 - Data:\n");
-    // for (int i = 0; i < entry_count; i++) {
-        // printf("%s\n", data_table[i]);
-    // }
-
-    // printf("\nTable 2 - Godzina:\n");
-    // for (int i = 0; i < entry_count; i++) {
-        // printf("%s\n", godzina_table[i]);
-    // }
-
-    // printf("\nTable 3 - Prowadzący:\n");
-    // for (int i = 0; i < entry_count; i++) {
-        // printf("%s\n", prowadzacy_table[i]);
-    // }
-
-    // printf("\nTable 4 - Tytuł:\n");
-    // for (int i = 0; i < entry_count; i++) {
-        // printf("%s\n", tytul_table[i]);
-    // }
-
-    // printf("\nTable 5 - Opis:\n");
-    // for (int i = 0; i < entry_count; i++) {
-        // printf("%s\n", opis_table[i]);
-    // }
-
-    // printf("\nTable 6 - Sala:\n");
-    // for (int i = 0; i < entry_count; i++) {
-        // printf("%s\n", sala_table[i]);
-    // }
-
-    // printf("\nTable 7 - Strefa:\n");
-    // for (int i = 0; i < entry_count; i++) {
-        // printf("%s\n", strefa_table[i]);
-    // }
-
-    // Clean up
+    // Offsets
+    sobota_offset = piatek_count;
+    niedziela_offset = piatek_count + sobota_count;
     json_decref(root);
 }
 
@@ -993,14 +1102,9 @@ int main(int argc, char* argv[]) {
 	CWAV* sfx = cwavList[2].cwav;
 	menu->volume = 0.6f;
 	
-	FILE *test = fopen("romfs:/my_pyrkon.csv", "r");
-	if (!test) {
-		printf("CSV file missing or path wrong\n");
-	} else {
-		printf("CSV file opened successfully!\n");
-		fclose(test);
-	}
-	printf("Processing CSV!\n");
+	if (is_network_connected()) {
+		load_current_program();
+	} 
 	process_program();
 	float scalemapa = 0.5f;
 	float time = 0.0f;
@@ -1164,31 +1268,36 @@ int main(int argc, char* argv[]) {
 		}
 		if (kDown & KEY_SELECT) {
 			if (Scene == 8) {
-				// Check if the entry is already in the favorites
+				const char* current_title = tytul_table[offset_caly];
 				int index = -1;
+
+				// Check if title is already in favorites
 				for (int i = 0; i < fav_count; i++) {
-					if (favorites[i] == offset_caly) {
+					if (strcmp(favorites[i], current_title) == 0) {
 						index = i;
 						break;
 					}
 				}
 
 				if (index != -1) {
-					// Already favorited — remove it
+					// Remove favorite
 					for (int i = index; i < fav_count - 1; i++) {
-						favorites[i] = favorites[i + 1];
+						strcpy(favorites[i], favorites[i + 1]);
 					}
 					fav_count--;
 				} else {
-					// Not favorited — add it
-					favorites[fav_count++] = offset_caly;
+					// Add new favorite
+					if (fav_count < 810) {
+						strncpy(favorites[fav_count], current_title, sizeof(favorites[fav_count]) - 1);
+						favorites[fav_count][sizeof(favorites[fav_count]) - 1] = '\0';
+						fav_count++;
+					}
 				}
 
-				// Save the updated list either way
 				save_favorites(favorites, fav_count, "/3ds/ulubione.json");
 			}
-
 		}
+
 		if (kDown & KEY_R) {
 			if (Scene == 3 && timer > 7.0f) {
 				scalemapa += 0.1f;
