@@ -541,7 +541,7 @@ void load_current_program() {
     headers = curl_slist_append(headers, "User-Agent: okhttp/4.12.0");
     headers = curl_slist_append(headers, "Accept: application/json");
 
-    refresh_data("https://core.pyrkon.pl/wp-json/pyrkon/v1/planner-items-search?type=standard&selectedlang=all&time=&offset=1&lang=pl&site_id=12&api_token=1c57cd904562dc3691b101d2c338f484&offset=0", "", headers);
+    refresh_data("https://core.pyrkon.pl/wp-json/pyrkon/v1/planner-items-search?type=standard&selectedlang=all&time=&offset=1&lang=pl&site_id=12&api_token=1c57cd904562dc3691b101d2c338f484&offset=0&limit=729", "", headers);
 
     // Remove all "<br />\r\n" from the global_response data
     const char *needle = "<br />\r\n";
