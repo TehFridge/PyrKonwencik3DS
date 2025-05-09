@@ -1008,7 +1008,7 @@ int main(int argc, char* argv[]) {
 	if ((ret = socInit(SOC_buffer, SOC_BUFFERSIZE)) != 0) {
     	printf("socInit: 0x%08X\n", (unsigned int)ret);
 	}
-	fav_count = load_favorites_from_json("3ds/ulubione.json", favorites, 810);
+	fav_count = load_favorites_from_json("/3ds/ulubione.json", favorites, 810);
 	entry_name_Buf = C2D_TextBufNew(5096);
 	description_Buf = C2D_TextBufNew(5096);
 	loc_Buf = C2D_TextBufNew(5096);
