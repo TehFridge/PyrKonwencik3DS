@@ -19,6 +19,7 @@
 #include "buttons.h"
 #include "cwav_shit.h"
 #include "request.h"
+#include <ctype.h>
 
 #define MAX_SPRITES   1
 #define fmin(a, b) ((a) < (b) ? (a) : (b))
@@ -238,11 +239,37 @@ int offset_friday = 0;
 int offset_saturday = 0;
 int offset_sunday = 0;
 int offset_ulub = 0;
+int offset_search = 0;
 int offset_caly;
 char favorites[822][256];
 int sobota_offset = 0;
 int niedziela_offset = 0;
 int fav_count = 0;
+char *strcasestr(const char *haystack, const char *needle) {
+    if (!*needle) return (char *)haystack;
+
+    for (; *haystack; haystack++) {
+        const char *h = haystack;
+        const char *n = needle;
+        while (*h && *n && tolower((unsigned char)*h) == tolower((unsigned char)*n)) {
+            h++;
+            n++;
+        }
+        if (!*n) return (char *)haystack;
+    }
+    return NULL;
+}
+int search_results[801]; 
+int search_result_count = 0;
+
+void search_entries(const char *query) {
+    search_result_count = 0;
+    for (int i = 0; i < tileCount && search_result_count < 50; i++) {
+        if (strcasestr(tytul_table[i], query) || strcasestr(opis_table[i], query)) {
+            search_results[search_result_count++] = i;
+        }
+    }
+}
 void read_entry(){
 	textOffset = 0;
 	C2D_TextBufClear(description_Buf);
@@ -266,6 +293,9 @@ void read_entry(){
 			printf("Favorite title not found: %s\n", fav_title);
 			return;
 		}
+	} else if (currentday == 4) {
+		int search_index = search_results[selectioncodelol - 3 + offset_search];
+		offset_caly = search_index;
 	}
 
 	if (strlen(opis_table[offset_caly]) > 871) {
@@ -343,8 +373,12 @@ void load_friday_page() {
 			C2D_TextOptimize(&g_entry_nameText[i]);
 			max_scrollY += 70;
 			furthercounter += 1;
+		} else {
+			C2D_TextParse(&g_entry_nameText[i], entry_name_Buf, "");
+			C2D_TextOptimize(&g_entry_nameText[i]);
 		}
 	}
+	
 	if (furthercounter >= 6) {
 		can_further = true;
 	}
@@ -368,6 +402,9 @@ void load_saturday_page() {
 			C2D_TextOptimize(&g_entry_nameText[i]);
 			max_scrollY += 70;
 			furthercounter += 1;
+		} else {
+			C2D_TextParse(&g_entry_nameText[i], entry_name_Buf, "");
+			C2D_TextOptimize(&g_entry_nameText[i]);
 		}
 	}
 	if (furthercounter >= 6) {
@@ -393,6 +430,9 @@ void load_sunday_page() {
 			C2D_TextOptimize(&g_entry_nameText[i]);
 			max_scrollY += 70;
 			furthercounter += 1;
+		} else {
+			C2D_TextParse(&g_entry_nameText[i], entry_name_Buf, "");
+			C2D_TextOptimize(&g_entry_nameText[i]);
 		}
 	}
 	if (furthercounter >= 6) {
@@ -535,6 +575,38 @@ void load_ulubione() {
 	}
 	max_scrollY -= 190;
 }
+
+void load_search_page() {
+    removeButtonEntries(809);
+    C2D_TextBufClear(entry_name_Buf);
+    max_scrollY = 0;
+    can_further = false;
+
+    int display_count = 0;
+    for (int i = offset_search; i < search_result_count && display_count < 6; i++) {
+        int entry_index = search_results[i];
+        buttonsy[display_count + 3] = (Button){
+            99999, 99999, 309, 70, entrybutton, entry_pressed, false,
+            4, 78, 78, 78, 78, 1.0f, read_entry
+        };
+
+        const char* title = tytul_table[entry_index];
+        C2D_TextParse(&g_entry_nameText[display_count], entry_name_Buf,
+            (title && title[0] != '\0') ? title : "Brak Tytułu :(");
+        C2D_TextOptimize(&g_entry_nameText[display_count]);
+        max_scrollY += 70;
+        display_count++;
+    }
+    for (int i = display_count; i < 6; i++) {
+        C2D_TextParse(&g_entry_nameText[i], entry_name_Buf, "");
+        C2D_TextOptimize(&g_entry_nameText[i]);
+    }
+	
+    if (offset_search + 6 < search_result_count) can_further = true;
+    max_scrollY -= 190;
+}
+
+
 void load_current_program() {
     struct curl_slist *headers = NULL;
     headers = curl_slist_append(headers, "Content-Type: application/json");
@@ -1030,8 +1102,8 @@ int main(int argc, char* argv[]) {
  	C2D_TextBuf memBuf = C2D_TextBufNew(128);
 	C2D_Text memtext[100];
 	static SwkbdState swkbd;
-	static char mybuf[60];
-	static char mybuf2[60];
+	static char mybuf[256];
+	static char mybuf2[256];
 	static SwkbdStatusData swkbdStatus;
 	static SwkbdLearningData swkbdLearning;
 	SwkbdButton button = SWKBD_BUTTON_NONE;
@@ -1093,6 +1165,8 @@ int main(int argc, char* argv[]) {
 	C2D_TextParse(&g_staticText[11], g_staticBuf, "L/R - Zoom");
 	C2D_TextParse(&g_staticText[12], g_staticBuf, "Ulubione");
 	C2D_TextParse(&g_staticText[13], g_staticBuf, "Select - Polub/Odlub");
+	C2D_TextParse(&g_staticText[14], g_staticBuf, "Szukane");
+	C2D_TextParse(&g_staticText[15], g_staticBuf, "Y - Wyszukaj");
     //C2D_TextOptimize(&g_staticText[1]); 
 	// CWAV* bgm = cwavList[1].cwav;
 	// CWAV* loginbgm = cwavList[2].cwav;
@@ -1238,6 +1312,22 @@ int main(int argc, char* argv[]) {
 				Scene = 4;	
 			}
 		}
+		if (kDown & KEY_Y) {
+			if (Scene == 4) {
+				swkbdTriggered = true;
+				didit = true;
+				swkbdInit(&swkbd, SWKBD_TYPE_NORMAL, 1, -1);
+				swkbdSetInitialText(&swkbd, mybuf);
+				swkbdSetHintText(&swkbd, "Co chcesz wyszukać?");
+				swkbdSetValidation(&swkbd, SWKBD_ANYTHING, 0, 0);
+				swkbdSetFeatures(&swkbd, SWKBD_FIXED_WIDTH);
+				button = swkbdInputText(&swkbd, mybuf, sizeof(mybuf));
+				search_entries(mybuf);
+				swkbdTriggered = false;
+				load_search_page();
+				currentday = 4;
+			}
+		}
 		if (kDown & KEY_L) {
 			if (Scene == 3 && timer > 7.0f && scalemapa != 0.0f) {
 				scalemapa -= 0.1f;
@@ -1263,6 +1353,10 @@ int main(int argc, char* argv[]) {
 					cwavPlay(sfx, 0, 1);
 					offset_ulub -= 6;
 					load_ulubione_buttons("/3ds/ulubione.json");
+				} else if (currentday == 4 && offset_search != 0) {
+					cwavPlay(sfx, 0, 1);
+					offset_search -= 6;
+					load_search_page();
 				}
 			}
 		}
@@ -1324,6 +1418,10 @@ int main(int argc, char* argv[]) {
 						offset_ulub += 6;
 						cwavPlay(sfx, 0, 1);
 						load_ulubione_buttons("/3ds/ulubione.json");
+					} else if (currentday == 4) {
+						offset_search += 6;
+						cwavPlay(sfx, 0, 1);
+						load_search_page();
 					}
 				}
 			}
@@ -1350,6 +1448,9 @@ int main(int argc, char* argv[]) {
 				} else if (currentday == 1) {
 					load_saturday_page();
 				} else if (currentday == 2) {
+					load_sunday_page();
+				} else if (currentday == 3) {
+					currentday -= 1;
 					load_sunday_page();
 				}
 			}
@@ -1595,6 +1696,7 @@ int main(int argc, char* argv[]) {
 			tajmer += delta;
 
 			float yOffset = sinf(tajmer * 2.0f) * 5.0f; // 2 Hz sine wave, 5px amplitude
+			drawShadowedText(&g_staticText[15], 200.0f, 150.0f + yOffset, 0.5f, 0.6f, 0.6f, C2D_Color32(76, 25, 102, 220), C2D_Color32(0xff, 0xff, 0xff, 0xff));
 			drawShadowedText(&g_staticText[9], 200.0f, 170.0f + yOffset, 0.5f, 0.6f, 0.6f, C2D_Color32(76, 25, 102, 220), C2D_Color32(0xff, 0xff, 0xff, 0xff));
 			drawShadowedText(&g_staticText[8], 200.0f, 190.0f + yOffset, 0.5f, 0.6f, 0.6f, C2D_Color32(76, 25, 102, 220), C2D_Color32(0xff, 0xff, 0xff, 0xff));
 			drawShadowedText(&g_staticText[7], 200.0f, 210.0f + yOffset, 0.5f, 0.6f, 0.6f, C2D_Color32(76, 25, 102, 220), C2D_Color32(0xff, 0xff, 0xff, 0xff));
@@ -1609,6 +1711,9 @@ int main(int argc, char* argv[]) {
 				C2D_DrawRectSolid(0.0f,0.0f,1.0f,SCREEN_WIDTH,SCREEN_HEIGHT, C2D_Color32(255, 255, 255, transpar));	
 			} else if (currentday == 3) {
 				drawShadowedText(&g_staticText[12], 200.0f, 80.0f + yOffset, 0.5f, 1.7f, 1.7f, C2D_Color32(76, 25, 102, 220), C2D_Color32(0xff, 0xff, 0xff, 0xff));
+				C2D_DrawRectSolid(0.0f,0.0f,1.0f,SCREEN_WIDTH,SCREEN_HEIGHT, C2D_Color32(255, 255, 255, transpar));	
+			} else if (currentday == 4) {
+				drawShadowedText(&g_staticText[14], 200.0f, 80.0f + yOffset, 0.5f, 1.7f, 1.7f, C2D_Color32(76, 25, 102, 220), C2D_Color32(0xff, 0xff, 0xff, 0xff));
 				C2D_DrawRectSolid(0.0f,0.0f,1.0f,SCREEN_WIDTH,SCREEN_HEIGHT, C2D_Color32(255, 255, 255, transpar));	
 			}
             C2D_TargetClear(bottom, C2D_Color32f(0.0f, 0.0f, 0.0f, 1.0f));
