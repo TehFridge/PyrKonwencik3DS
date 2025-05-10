@@ -1192,9 +1192,10 @@ int main(int argc, char* argv[]) {
 		int x = (screenWidth - strlen(msg)) / 2;
 		int y = screenHeight / 2;
 		printf("\x1b[%d;%dH%s", y, x, msg);  // ANSI escape to move cursor to (y, x)
-		printf("Pobieranie z serwerów...");
+		//printf("Pobieranie z serwerów...");
 		load_current_program();
 	} 
+	consoleClear();
 	const char* msg = "Loading... (cierpliwosc plz)";
     int screenWidthcur = topConsole.windowWidth;
     int screenHeightcur = topConsole.windowHeight;
