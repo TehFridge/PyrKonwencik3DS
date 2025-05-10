@@ -701,7 +701,7 @@ void process_program() {
     int piatek_count = 0;
     int sobota_count = 0;
     int niedziela_count = 0;
-
+	#define PROGRESS_BAR_WIDTH 40
     json_array_foreach(data_array, index, entry) {
         const char *data = json_string_value(json_object_get(entry, "date"));
         const char *godzina = json_string_value(json_object_get(entry, "range"));
@@ -759,7 +759,18 @@ void process_program() {
             //printf("Entry [%d]: '%s'\n", entry_count, data_table[entry_count]);
             entry_count++;
             tileCount++;
-
+			if ((index + 1) % 10 == 0 || (index + 1) == json_array_size(data_array)) {
+				float progress = (float)(index + 1) / json_array_size(data_array);
+				int bar_chars = (int)(progress * PROGRESS_BAR_WIDTH);
+				
+				printf("\x1b[29;1H[");  // Move to bottom row (e.g., row 29), column 1
+				for (int i = 0; i < PROGRESS_BAR_WIDTH; i++) {
+					if (i < bar_chars) printf("=");
+					else printf(" ");
+				}
+				printf("] %3.0f%%", progress * 100);
+				fflush(stdout);  // Ensure it's printed immediately
+			}
             if (strstr(data, "piątek")) {
                 piatek_count++;
             } else if (strstr(data, "sobota")) {
