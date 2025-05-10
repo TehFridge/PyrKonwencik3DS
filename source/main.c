@@ -43,7 +43,6 @@ char opis_table[MAX_ENTRIES][2048];  // Larger buffer for the description
 char sala_table[MAX_ENTRIES][256];
 char strefa_table[MAX_ENTRIES][256];
 C3D_RenderTarget* bottom;
-C3D_RenderTarget* top;
 typedef struct {
     float x, y;
     float speed;
@@ -757,7 +756,7 @@ void process_program() {
             snprintf(sala_table[entry_count], sizeof(sala_table[entry_count]), "%s", sala);
             snprintf(strefa_table[entry_count], sizeof(strefa_table[entry_count]), "%s", strefa);
 
-            printf("Entry [%d]: '%s'\n", entry_count, data_table[entry_count]);
+            //printf("Entry [%d]: '%s'\n", entry_count, data_table[entry_count]);
             entry_count++;
             tileCount++;
 
@@ -1065,15 +1064,13 @@ int main(int argc, char* argv[]) {
 	cfguInit(); 
     gfxInitDefault();
 	
-    C3D_Init(C3D_DEFAULT_CMDBUF_SIZE);
-    C2D_Init(C2D_DEFAULT_MAX_OBJECTS);
-    C2D_Prepare();
     ndspInit();
 	initBubbles();
 	json_t *jsonfl;
     Result ret;
     SOC_buffer = (u32*)memalign(SOC_ALIGN, SOC_BUFFERSIZE);
-	//consoleInit(GFX_TOP, NULL);
+	PrintConsole topConsole;
+    consoleInit(GFX_TOP, &topConsole);
 	if(SOC_buffer == NULL) {
 		printf("memalign: failed to allocate\n");
 	}
@@ -1097,7 +1094,6 @@ int main(int argc, char* argv[]) {
 	if (days < 0) {
 		days = 0;
 	}
-    top = C2D_CreateScreenTarget(GFX_TOP, GFX_LEFT);
     bottom = C2D_CreateScreenTarget(GFX_BOTTOM, GFX_LEFT);
  	C2D_TextBuf memBuf = C2D_TextBufNew(128);
 	C2D_Text memtext[100];
@@ -1167,6 +1163,8 @@ int main(int argc, char* argv[]) {
 	C2D_TextParse(&g_staticText[13], g_staticBuf, "Select - Polub/Odlub");
 	C2D_TextParse(&g_staticText[14], g_staticBuf, "Szukane");
 	C2D_TextParse(&g_staticText[15], g_staticBuf, "Y - Wyszukaj");
+	//C2D_TextParse(&g_staticText[16], g_staticBuf, "Ładowanie...");
+	//C2D_TextParse(&g_staticText[17], g_staticBuf, "Pobieranie z serwerów...");
     //C2D_TextOptimize(&g_staticText[1]); 
 	// CWAV* bgm = cwavList[1].cwav;
 	// CWAV* loginbgm = cwavList[2].cwav;
@@ -1177,9 +1175,33 @@ int main(int argc, char* argv[]) {
 	menu->volume = 0.6f;
 	
 	if (is_network_connected()) {
+		const char* msg = "Pobieranie danych z serwera...";
+		int screenWidth = topConsole.windowWidth;
+		int screenHeight = topConsole.windowHeight;
+		int x = (screenWidth - strlen(msg)) / 2;
+		int y = screenHeight / 2;
+		printf("\x1b[%d;%dH%s", y, x, msg);  // ANSI escape to move cursor to (y, x)
+		printf("Pobieranie z serwerów...");
 		load_current_program();
 	} 
+	const char* msg = "Loading... (cierpliwosc plz)";
+    int screenWidthcur = topConsole.windowWidth;
+    int screenHeightcur = topConsole.windowHeight;
+    int xcur = (screenWidthcur - strlen(msg)) / 2;
+    int ycur = screenHeightcur / 2;
+	printf("\x1b[%d;%dH%s", ycur, xcur, msg);  // ANSI escape to move cursor to (y, x)
 	process_program();
+	consoleClear();
+
+    gfxExit(); 
+    gfxInitDefault();
+
+
+    C3D_Init(C3D_DEFAULT_CMDBUF_SIZE);
+    C2D_Init(C2D_DEFAULT_MAX_OBJECTS);
+    C2D_Prepare();
+
+    C3D_RenderTarget* top = C2D_CreateScreenTarget(GFX_TOP, GFX_LEFT);
 	float scalemapa = 0.5f;
 	float time = 0.0f;
     int lastTouchY = -1;
