@@ -1427,7 +1427,7 @@ int main(int argc, char* argv[]) {
 			}
 		}
 		if (kDown & KEY_DRIGHT) {
-			if (Scene == 4 && currentday != 3) {
+			if (Scene == 4 && currentday != 3 && currentday != 4) {
 				cwavPlay(sfx, 0, 1);
 				currentday += 1;
 				if (currentday == 1) {
