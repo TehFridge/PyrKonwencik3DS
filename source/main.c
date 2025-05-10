@@ -452,7 +452,7 @@ void save_favorites(char favorites[][256], int count, const char *filename) {
 int load_favorites_from_json(const char *filename, char favorites[][256], int max_count) {
     FILE *f = fopen(filename, "r");
     if (!f) {
-        printf("Error opening file for reading.\n");
+        //printf("Error opening file for reading.\n");
         return 0;
     }
 
@@ -461,7 +461,7 @@ int load_favorites_from_json(const char *filename, char favorites[][256], int ma
     fclose(f);
 
     if (!json_array || !json_is_array(json_array)) {
-        printf("Error loading JSON data: %s\n", error.text);
+        //printf("Error loading JSON data: %s\n", error.text);
         return 0;
     }
 
@@ -488,7 +488,7 @@ void load_ulubione_buttons(const char *filename) {
     json_t *root = json_load_file(filename, 0, &error);
 
     if (!root || !json_is_array(root)) {
-        printf("Failed to load ulubione.json: %s\n", error.text);
+       // printf("Failed to load ulubione.json: %s\n", error.text);
         return;
     }
 
@@ -614,29 +614,8 @@ void load_current_program() {
 
     refresh_data("https://core.pyrkon.pl/wp-json/pyrkon/v1/planner-items-search?type=standard&selectedlang=all&time=&offset=1&lang=pl&site_id=12&api_token=1c57cd904562dc3691b101d2c338f484&offset=0&limit=729", "", headers);
 
-    // Remove all "<br />\r\n" from the global_response data
-    const char *needle = "<br />\r\n";
-    char *cleaned = malloc(global_response.size + 1);
-    if (!cleaned) return;
-
-    char *src = global_response.data;
-    char *dst = cleaned;
-
-    // Iterate over the response data
-    while (*src) {
-        // If we find the "<br />\r\n", skip it
-        if (strncmp(src, needle, strlen(needle)) == 0) {
-            src += strlen(needle);  // Skip this tag
-        } else {
-            *dst++ = *src++;        // Copy the rest of the characters
-        }
-    }
-    *dst = '\0';
-
-    // Parse the cleaned JSON
     json_error_t error;
-    json_t *root = json_loads(cleaned, 0, &error);
-    free(cleaned);
+    json_t *root = json_loads(global_response.data, 0, &error);
 
     if (!root) {
         printf("JSON parse error: %s\n", error.text);
@@ -1088,6 +1067,11 @@ int main(int argc, char* argv[]) {
 	if ((ret = socInit(SOC_buffer, SOC_BUFFERSIZE)) != 0) {
     	printf("socInit: 0x%08X\n", (unsigned int)ret);
 	}
+	if (access("/3ds/ulubione.json", F_OK) != 0) {
+		FILE *file = fopen("3ds/ulubione.json", "w");
+		fprintf(file, "%s\n", "{}");
+		fclose(file);
+	}
 	fav_count = load_favorites_from_json("/3ds/ulubione.json", favorites, 810);
 	entry_name_Buf = C2D_TextBufNew(5096);
 	description_Buf = C2D_TextBufNew(5096);
@@ -1184,25 +1168,46 @@ int main(int argc, char* argv[]) {
 	CWAV* menu = cwavList[1].cwav;
 	CWAV* sfx = cwavList[2].cwav;
 	menu->volume = 0.6f;
-	
+	bool fuckeduplel = false;
 	if (is_network_connected()) {
 		const char* msg = "Pobieranie danych z serwera...";
+		const char* msg2 = "Troche to trwa sorry :(";
 		int screenWidth = topConsole.windowWidth;
 		int screenHeight = topConsole.windowHeight;
 		int x = (screenWidth - strlen(msg)) / 2;
+		int x2 = (screenWidth - strlen(msg2)) / 2;
 		int y = screenHeight / 2;
 		printf("\x1b[%d;%dH%s", y, x, msg);  // ANSI escape to move cursor to (y, x)
+		printf("\x1b[%d;%dH%s", y+1, x2, msg2);  // ANSI escape to move cursor to (y, x)
 		//printf("Pobieranie z serwerów...");
 		load_current_program();
 	} 
 	consoleClear();
-	const char* msg = "Loading... (cierpliwosc plz)";
-    int screenWidthcur = topConsole.windowWidth;
-    int screenHeightcur = topConsole.windowHeight;
-    int xcur = (screenWidthcur - strlen(msg)) / 2;
-    int ycur = screenHeightcur / 2;
-	printf("\x1b[%d;%dH%s", ycur, xcur, msg);  // ANSI escape to move cursor to (y, x)
-	process_program();
+	if (access("/3ds/my_pyrkon.json", F_OK) == 0) {
+		const char* msg = "Loading... (cierpliwosc plz)";
+		int screenWidthcur = topConsole.windowWidth;
+		int screenHeightcur = topConsole.windowHeight;
+		int xcur = (screenWidthcur - strlen(msg)) / 2;
+		int ycur = screenHeightcur / 2;
+		printf("\x1b[%d;%dH%s", ycur, xcur, msg);  // ANSI escape to move cursor to (y, x)
+		process_program();
+	} else {
+		const char* msg = "Brak pobranego programu!";
+		const char* msg2 = "Polacz sie do internetu i";
+		const char* msg3 = "zrestartuj by pobrac.";
+		int screenWidth = topConsole.windowWidth;
+		int screenHeight = topConsole.windowHeight;
+		int x = (screenWidth - strlen(msg)) / 2;
+		int x2 = (screenWidth - strlen(msg2)) / 2;
+		int x3 = (screenWidth - strlen(msg3)) / 2;
+		int y = screenHeight / 2;
+		printf("\x1b[%d;%dH%s", y, x, msg);  // ANSI escape to move cursor to (y, x)
+		printf("\x1b[%d;%dH%s", y+1, x2, msg2);  // ANSI escape to move cursor to (y, x)
+		printf("\x1b[%d;%dH%s", y+2, x3, msg3);  // ANSI escape to move cursor to (y, x)
+		//printf("Pobieranie z serwerów...");
+		sleep(5);
+		fuckeduplel = true;
+	}
 	consoleClear();
 
     gfxExit(); 
@@ -1239,6 +1244,9 @@ int main(int argc, char* argv[]) {
         u32 kDown = hidKeysDown();
 		u32 kHeld = hidKeysHeld();
         if (kDown & KEY_START) {
+            break;
+        }
+        if (fuckeduplel) {
             break;
         }
         touchPosition touch;

@@ -26,6 +26,7 @@ typedef struct {
 typedef struct {
     char *data;
     size_t size;
+	size_t total_size; // For progress tracking
 } ResponseBuffer;
 
 extern ResponseBuffer global_response;

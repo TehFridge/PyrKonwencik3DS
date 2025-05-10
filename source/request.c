@@ -115,6 +115,7 @@ void print_headers(struct curl_slist *headers) {
         current = current->next;
     }
 }
+
 extern void refresh_data(const char *url, const char *data, struct curl_slist *headers) {
 	youfuckedup = false;
     log_memory_info("Entering refresh_data");
