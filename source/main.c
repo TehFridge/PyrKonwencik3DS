@@ -488,10 +488,9 @@ void load_ulubione_buttons(const char *filename) {
     json_t *root = json_load_file(filename, 0, &error);
 
     if (!root || !json_is_array(root)) {
-       // printf("Failed to load ulubione.json: %s\n", error.text);
+		currentday = 2;
         return;
     }
-
     removeButtonEntries(809);
     C2D_TextBufClear(entry_name_Buf);
     max_scrollY = 0;
@@ -544,7 +543,10 @@ void load_ulubione_buttons(const char *filename) {
 
     if (loaded >= 6 && fav_count > 6) can_further = true;
     max_scrollY = (loaded > 0) ? (loaded * 70 - 190) : 0;
-
+	if (loaded == 0) {
+		currentday = 2;
+		load_sunday_page();
+	}
     json_decref(root);
 }
 
@@ -1143,9 +1145,13 @@ int main(int argc, char* argv[]) {
     C2D_TextOptimize(&g_staticText[0]); 
 	char dayText[64];
 	snprintf(dayText, sizeof(dayText), "%d", days);
-    C2D_TextParse(&g_staticText[1], g_staticBuf, dayText);
-	C2D_TextParse(&g_staticText[2], g_staticBuf, "Dni");
-	C2D_TextParse(&g_staticText[3], g_staticBuf, "Pozostało:");
+	if (days != 0) {
+		C2D_TextParse(&g_staticText[1], g_staticBuf, dayText);
+		C2D_TextParse(&g_staticText[2], g_staticBuf, "Dni");
+		C2D_TextParse(&g_staticText[3], g_staticBuf, "Pozostało:");
+	} else {
+		C2D_TextParse(&g_staticText[1], g_staticBuf, "ITZ PYRKA TIME");
+	}
 	C2D_TextParse(&g_staticText[4], g_staticBuf, "Piątek");
 	C2D_TextParse(&g_staticText[5], g_staticBuf, "Sobota");
 	C2D_TextParse(&g_staticText[6], g_staticBuf, "Niedziela");
@@ -1624,9 +1630,13 @@ int main(int argc, char* argv[]) {
 			tajmer += delta;
 
 			float yOffset = sinf(tajmer * 2.0f) * 5.0f; // 2 Hz sine wave, 5px amplitude
-			drawShadowedText(&g_staticText[1], 205.0f, 80.0f + yOffset, 0.5f, 2.3f, 2.3f, C2D_Color32(76, 25, 102, 220), C2D_Color32(0xff, 0xff, 0xff, 0xff));
-			drawShadowedText(&g_staticText[2], 202.5f, 140.0f + yOffset, 0.5f, 0.7f, 0.7f, C2D_Color32(76, 25, 102, 220), C2D_Color32(0xff, 0xff, 0xff, 0xff));
-			drawShadowedText(&g_staticText[3], 205.0f, 40.0f + yOffset, 0.5f, 1.4f, 1.4f, C2D_Color32(76, 25, 102, 220), C2D_Color32(0xff, 0xff, 0xff, 0xff));
+			if (days != 0) {
+				drawShadowedText(&g_staticText[1], 205.0f, 80.0f + yOffset, 0.5f, 2.3f, 2.3f, C2D_Color32(76, 25, 102, 220), C2D_Color32(0xff, 0xff, 0xff, 0xff));
+				drawShadowedText(&g_staticText[2], 202.5f, 140.0f + yOffset, 0.5f, 0.7f, 0.7f, C2D_Color32(76, 25, 102, 220), C2D_Color32(0xff, 0xff, 0xff, 0xff));
+				drawShadowedText(&g_staticText[3], 205.0f, 40.0f + yOffset, 0.5f, 1.4f, 1.4f, C2D_Color32(76, 25, 102, 220), C2D_Color32(0xff, 0xff, 0xff, 0xff));
+			} else {
+				drawShadowedText(&g_staticText[1], 205.0f, 80.0f + yOffset, 0.5f, 1.7f, 1.7f, C2D_Color32(76, 25, 102, 220), C2D_Color32(0xff, 0xff, 0xff, 0xff));
+			}
 			C2D_DrawRectSolid(0.0f,0.0f,1.0f,SCREEN_WIDTH,SCREEN_HEIGHT, C2D_Color32(255, 255, 255, transpar));	
             C2D_TargetClear(bottom, C2D_Color32f(0.0f, 0.0f, 0.0f, 1.0f));
             C2D_SceneBegin(bottom);
