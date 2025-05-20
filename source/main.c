@@ -786,7 +786,7 @@ void initWaveOffsets() {
         phaseOffsets[i] = ((rand() % 1000) / 1000.0f) * 2.0f * M_PI;
     }
 }
-
+extern bool czasfuckup;
 void updateWave(float time) {
     const float t1 = time * 20.0f;
     const float t2 = time * 12.0f;
@@ -1189,18 +1189,36 @@ int main(int argc, char* argv[]) {
 		load_current_program();
 	} 
 	consoleClear();
-	if (access("/3ds/my_pyrkon.json", F_OK) == 0) {
-		const char* msg = "Loading... (cierpliwosc plz)";
-		int screenWidthcur = topConsole.windowWidth;
-		int screenHeightcur = topConsole.windowHeight;
-		int xcur = (screenWidthcur - strlen(msg)) / 2;
-		int ycur = screenHeightcur / 2;
-		printf("\x1b[%d;%dH%s", ycur, xcur, msg);  // ANSI escape to move cursor to (y, x)
-		process_program();
+	if (!czasfuckup) {
+		if (access("/3ds/my_pyrkon.json", F_OK) == 0) {
+			const char* msg = "Loading... (cierpliwosc plz)";
+			int screenWidthcur = topConsole.windowWidth;
+			int screenHeightcur = topConsole.windowHeight;
+			int xcur = (screenWidthcur - strlen(msg)) / 2;
+			int ycur = screenHeightcur / 2;
+			printf("\x1b[%d;%dH%s", ycur, xcur, msg);  // ANSI escape to move cursor to (y, x)
+			process_program();
+		} else {
+			const char* msg = "Brak pobranego programu!";
+			const char* msg2 = "Polacz sie do internetu i";
+			const char* msg3 = "zrestartuj by pobrac.";
+			int screenWidth = topConsole.windowWidth;
+			int screenHeight = topConsole.windowHeight;
+			int x = (screenWidth - strlen(msg)) / 2;
+			int x2 = (screenWidth - strlen(msg2)) / 2;
+			int x3 = (screenWidth - strlen(msg3)) / 2;
+			int y = screenHeight / 2;
+			printf("\x1b[%d;%dH%s", y, x, msg);  // ANSI escape to move cursor to (y, x)
+			printf("\x1b[%d;%dH%s", y+1, x2, msg2);  // ANSI escape to move cursor to (y, x)
+			printf("\x1b[%d;%dH%s", y+2, x3, msg3);  // ANSI escape to move cursor to (y, x)
+			//printf("Pobieranie z serwerów...");
+			sleep(5);
+			fuckeduplel = true;
+		}
 	} else {
-		const char* msg = "Brak pobranego programu!";
-		const char* msg2 = "Polacz sie do internetu i";
-		const char* msg3 = "zrestartuj by pobrac.";
+		const char* msg = "Zle ustawienia czasu!";
+		const char* msg2 = "W Rosalina Menu zrob:";
+		const char* msg3 = "Misc. Settings > Set Time via NTP";
 		int screenWidth = topConsole.windowWidth;
 		int screenHeight = topConsole.windowHeight;
 		int x = (screenWidth - strlen(msg)) / 2;

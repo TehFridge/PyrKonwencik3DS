@@ -12,6 +12,7 @@ extern bool schizofrenia;
 extern long response_code;
 extern bool requestdone;
 extern bool loadingshit;
+extern bool czasfuckup;
 extern LightLock global_response_lock;
 typedef struct {
     char url[256];         

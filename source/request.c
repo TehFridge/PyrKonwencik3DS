@@ -7,6 +7,7 @@ static char *sprite_memory = NULL;
 static size_t sprite_memory_size = 0;
 static LightLock request_lock;
 bool youfuckedup = false;
+bool czasfuckup = false;
 static bool request_running = true;
 static Thread request_thread;
 static LightEvent request_event;
@@ -168,6 +169,9 @@ extern void refresh_data(const char *url, const char *data, struct curl_slist *h
 		curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response_code);
 		if (response_code == 401) {
 			youfuckedup = true;
+		}
+		if (response_code == 0) {
+			czasfuckup = true;
 		}
 		if (res != CURLE_OK) {
 			//log_to_file("[refresh_data] ERROR: curl_easy_perform() failed: %s", curl_easy_strerror(res));
