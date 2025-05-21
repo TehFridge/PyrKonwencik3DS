@@ -34,7 +34,7 @@
 #define BASE_HEIGHT (SCREEN_HEIGHT / 2)
 #define WAVE_AMPLITUDE 10.0f
 #define WAVE_FREQUENCY 0.025f
-#define MAX_ENTRIES 803  // Set the maximum number of entries
+#define MAX_ENTRIES 2000  // Set the maximum number of entries
 char data_table[MAX_ENTRIES][256];
 char godzina_table[MAX_ENTRIES][256];
 char prowadzacy_table[MAX_ENTRIES][256];
@@ -240,7 +240,7 @@ int offset_sunday = 0;
 int offset_ulub = 0;
 int offset_search = 0;
 int offset_caly;
-char favorites[822][256];
+char favorites[2000][256];
 int sobota_offset = 0;
 int niedziela_offset = 0;
 int fav_count = 0;
@@ -343,7 +343,7 @@ C2D_Image couponbutton_pressed;
 C2D_Image couponbutton;
 C2D_Image entry_pressed;
 C2D_Image entrybutton;
-extern Button buttonsy[810];
+extern Button buttonsy[2000];
 int friday_ent;
 int saturd_ent;
 int sunday_ent;
@@ -355,7 +355,7 @@ int max_scrollY = 0;
 bool can_further = false;
 
 void load_friday_page() {
-	removeButtonEntries(809);
+	removeButtonEntries(2000);
 	C2D_TextBufClear(entry_name_Buf);	
 	max_scrollY = 0;
 	int furthercounter = 0;
@@ -384,7 +384,7 @@ void load_friday_page() {
 	max_scrollY -= 190;
 }
 void load_saturday_page() {
-	removeButtonEntries(809);
+	removeButtonEntries(2000);
 	C2D_TextBufClear(entry_name_Buf);	
 	max_scrollY = 0;
 	int furthercounter = 0;
@@ -412,7 +412,7 @@ void load_saturday_page() {
 	max_scrollY -= 190;
 }
 void load_sunday_page() {
-	removeButtonEntries(809);
+	removeButtonEntries(2000);
 	C2D_TextBufClear(entry_name_Buf);	
 	max_scrollY = 0;
 	int furthercounter = 0;
@@ -491,7 +491,7 @@ void load_ulubione_buttons(const char *filename) {
 		currentday = 2;
         return;
     }
-    removeButtonEntries(809);
+    removeButtonEntries(2000);
     C2D_TextBufClear(entry_name_Buf);
     max_scrollY = 0;
     can_further = false;
@@ -552,7 +552,7 @@ void load_ulubione_buttons(const char *filename) {
 
 
 void load_ulubione() {
-	removeButtonEntries(809);
+	removeButtonEntries(2000);
 	C2D_TextBufClear(entry_name_Buf);	
 	max_scrollY = 0;
 	int furthercounter = 0;
@@ -578,7 +578,7 @@ void load_ulubione() {
 }
 
 void load_search_page() {
-    removeButtonEntries(809);
+    removeButtonEntries(2000);
     C2D_TextBufClear(entry_name_Buf);
     max_scrollY = 0;
     can_further = false;
@@ -1074,7 +1074,7 @@ int main(int argc, char* argv[]) {
 		fprintf(file, "%s\n", "{}");
 		fclose(file);
 	}
-	fav_count = load_favorites_from_json("/3ds/ulubione.json", favorites, 810);
+	fav_count = load_favorites_from_json("/3ds/ulubione.json", favorites, MAX_ENTRIES);
 	entry_name_Buf = C2D_TextBufNew(5096);
 	description_Buf = C2D_TextBufNew(5096);
 	loc_Buf = C2D_TextBufNew(5096);
@@ -1447,7 +1447,7 @@ int main(int argc, char* argv[]) {
 					fav_count--;
 				} else {
 					// Add new favorite
-					if (fav_count < 810) {
+					if (fav_count < MAX_ENTRIES) {
 						strncpy(favorites[fav_count], current_title, sizeof(favorites[fav_count]) - 1);
 						favorites[fav_count][sizeof(favorites[fav_count]) - 1] = '\0';
 						fav_count++;
