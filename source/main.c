@@ -1065,11 +1065,9 @@ int main(int argc, char* argv[]) {
     	printf("socInit: 0x%08X\n", (unsigned int)ret);
 	}
 	if (access("/3ds/ulubione.json", F_OK) != 0) {
-		FILE *file = fopen("3ds/ulubione.json", "w");
-		fprintf(file, "%s\n", "{}");
-		fclose(file);
+		fav_count = load_favorites_from_json("/3ds/ulubione.json", favorites, MAX_ENTRIES);
 	}
-	fav_count = load_favorites_from_json("/3ds/ulubione.json", favorites, MAX_ENTRIES);
+	
 	entry_name_Buf = C2D_TextBufNew(5096);
 	description_Buf = C2D_TextBufNew(5096);
 	loc_Buf = C2D_TextBufNew(5096);
