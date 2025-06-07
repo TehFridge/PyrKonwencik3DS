@@ -42,6 +42,7 @@ char tytul_table[MAX_ENTRIES][256];
 char opis_table[MAX_ENTRIES][2048];  // Larger buffer for the description
 char sala_table[MAX_ENTRIES][256];
 char strefa_table[MAX_ENTRIES][256];
+time_t data_time_table[MAX_ENTRIES];
 C3D_RenderTarget* bottom;
 typedef struct {
     float x, y;
@@ -335,6 +336,11 @@ void read_entry(){
 
 	C2D_TextParse(&prow_Text[1], prow_Buf, prow2Text);
 	C2D_TextOptimize(&prow_Text[1]);
+	if (offset_caly >= 0) {
+		// data_table[offset_caly] holds something like "13.06 piątek"
+		C2D_TextParse(&prow_Text[2], prow_Buf, data_table[offset_caly]);
+		C2D_TextOptimize(&prow_Text[2]);
+	}
 	descpage = 0;
 	transpar = 255;
 	Scene = 8;
@@ -732,6 +738,7 @@ void process_program() {
             snprintf(sala_table[entry_count], sizeof(sala_table[entry_count]), "%s", sala);
             snprintf(strefa_table[entry_count], sizeof(strefa_table[entry_count]), "%s", strefa);
 
+
             //printf("Entry [%d]: '%s'\n", entry_count, data_table[entry_count]);
             entry_count++;
             tileCount++;
@@ -1064,7 +1071,7 @@ int main(int argc, char* argv[]) {
 	if ((ret = socInit(SOC_buffer, SOC_BUFFERSIZE)) != 0) {
     	printf("socInit: 0x%08X\n", (unsigned int)ret);
 	}
-	if (access("/3ds/ulubione.json", F_OK) != 0) {
+	if (access("/3ds/ulubione.json", F_OK) == 0) {
 		fav_count = load_favorites_from_json("/3ds/ulubione.json", favorites, MAX_ENTRIES);
 	}
 	
@@ -1080,7 +1087,7 @@ int main(int argc, char* argv[]) {
     time_t future = createDate(2025, 06, 13);
 
     double seconds = difftime(future, now);
-    int days = (int)(seconds / (60 * 60 * 24));
+	int days = (int)ceil(seconds / (60 * 60 * 24));
 	if (days < 0) {
 		days = 0;
 	}
@@ -1851,6 +1858,9 @@ int main(int argc, char* argv[]) {
 
 			drawShadowedText(&prow_Text[0], 200.0f, 80.0f + yOffset, 0.5f, 1.2f, 1.2f, C2D_Color32(76, 25, 102, 220), C2D_Color32(0xff, 0xff, 0xff, 0xff));
 			drawShadowedText(&prow_Text[1], 200.0f, 30.0f + yOffset, 0.5f, 0.9f, 0.9f, C2D_Color32(76, 25, 102, 220), C2D_Color32(0xff, 0xff, 0xff, 0xff));
+			if (!has_sec_page) {
+				drawShadowedText(&prow_Text[2], 200.0f, 10.0f + yOffset, 0.5f, 0.7f, 0.7f, C2D_Color32(76, 25, 102, 220), C2D_Color32(0xff, 0xff, 0xff, 0xff));
+			}
 			// drawShadowedText(&g_staticText[2], 202.5f, 140.0f + yOffset, 0.5f, 0.7f, 0.7f, C2D_Color32(76, 25, 102, 220), C2D_Color32(0xff, 0xff, 0xff, 0xff));
 			// drawShadowedText(&g_staticText[3], 205.0f, 40.0f + yOffset, 0.5f, 1.4f, 1.4f, C2D_Color32(76, 25, 102, 220), C2D_Color32(0xff, 0xff, 0xff, 0xff));
 			C2D_DrawRectSolid(0.0f,0.0f,1.0f,SCREEN_WIDTH,SCREEN_HEIGHT, C2D_Color32(255, 255, 255, transpar));	
