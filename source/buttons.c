@@ -1,9 +1,9 @@
 #include "buttons.h"
 
-Button buttonsy[810];
-char tileNames[810][256];
+Button buttonsy[2000];
+char tileNames[2000][256];
 int tileCount = 0;
-void drawButton(Button* button, SceneType currentScene) {
+void drawButton(Button* button, SceneType2 currentScene) {
     if (button->width == 0 || button->height == 0 || button->imageNormal.tex == NULL) {
         return;
     }
@@ -28,7 +28,7 @@ bool isButtonPressed(Button* button, touchPosition touch, int currentScene) {
 }
 
 void removeButtonEntries(int max) {
-    if (max < 3 || max >= 810) return;
+    if (max < 3 || max >= 2001) return;
 
     for (int i = max; i >= 3; i--) {
         buttonsy[i].isPressed = false;

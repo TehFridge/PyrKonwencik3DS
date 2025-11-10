@@ -1,2 +1,2 @@
---atlas -f rgba8888 -z auto
+--atlas -f rgba4 -z auto
 image_part_001.png

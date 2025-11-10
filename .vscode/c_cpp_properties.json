@@ -1,0 +1,161 @@
+{
+    "env": {
+        "defaultIncludePath": [
+            "${workspaceFolder}/include/**",
+            "${workspaceFolder}/libraries/**",
+            "${workspaceFolder}/platform/*"
+        ],
+        "defaultCStandard": "c11",
+        "defaultCppStandard": "c++20",
+        "defaultDefines": [
+            "__APP_VERSION__=\"3.0.0\"",
+            "__LOVE_VERSION__=\"12.0\"",
+            "_USE_MATH_DEFINES"
+        ],
+        "ctrIncludePaths": [
+            "${workspaceFolder}/platform/ctr/include/**",
+            "${workspaceFolder}/platform/ctr/libraries/**",
+            "C:/devkitPro/libctru/include/**",
+            "C:/devkitPro/libcwav/include/**",
+            "C:/devkitPro/libncsnd/include/**",
+            "C:/devkitPro/portlibs/3ds/include/**"
+        ],
+        "ctrDefines": [
+            "__3DS__",
+            "__OS__=\"Horizon\"",
+            "__CONSOLE__=\"3DS\"",
+            "__RENDERER_NAME__=\"citro3d\"",
+            "__RENDERER_VERSION__=\"1.7.0\"",
+            "__RENDERER_VENDOR__=\"devkitPro\"",
+            "__RENDERER_DEVICE__=\"DMP PICA200\""
+        ],
+        "ctrCompilerPath": "C:/devkitPro/devkitARM/bin/arm-none-eabi-g++.exe",
+        "hacIncludePaths": [
+            "${workspaceFolder}/platform/hac/include/**",
+            "C:/devkitPro/libnx/include/**",
+            "C:/devkitPro/portlibs/switch/include/**"
+        ],
+        "hacDefines": [
+            "__SWITCH__",
+            "__BSD_VISIBLE",
+            "__CONSOLE__=\"switch\"",
+            "__OS__=\"horizon\"",
+            "__RENDERER_NAME__=\"deko3d\"",
+            "__RENDERER_VERSION__=\"0.5.0\"",
+            "__RENDERER_VENDOR__=\"devkitPro\"",
+            "__RENDERER_DEVICE__=\"NVIDIA Tegra X1\""
+        ],
+        "hacCompilerPath": "C:/devkitPro/devkitA64/bin/aarch64-none-elf-g++.exe",
+        "cafeIncludePaths": [
+            "${workspaceFolder}/platform/cafe/include/**",
+            "C:/devkitPro/wut/include/**",
+            "C:/devkitPro/portlibs/wiiu/include/**",
+            "C:/devkitPro/portlibs/ppc/include/**"
+        ],
+        "cafeDefines": [
+            "__WIIU__",
+            "__OS__=\"Cafe\"",
+            "__CONSOLE__=\"Wii U\""
+        ],
+        "cafeCompilerPath": "C:/devkitPro/devkitPPC/bin/powerpc-eabi-g++.exe"
+    },
+    "configurations": [
+        {
+            "name": "3DS",
+            "includePath": [
+                "${env:defaultIncludePath}",
+                "${env:ctrIncludePaths}"
+            ],
+            "defines": [
+                "${env:defaultDefines}",
+                "${env:ctrDefines}",
+                "__DEBUG__=0"
+            ],
+            "compilerPath": "${env:ctrCompilerPath}",
+            "cStandard": "c11",
+            "cppStandard": "${env:defaultCppStandard}",
+            "intelliSenseMode": "linux-gcc-arm"
+        },
+        {
+            "name": "3DS {Debug}",
+            "includePath": [
+                "${env:defaultIncludePath}",
+                "${env:ctrIncludePaths}"
+            ],
+            "defines": [
+                "${env:defaultDefines}",
+                "${env:ctrDefines}",
+                "__DEBUG__=1"
+            ],
+            "compilerPath": "${env:ctrCompilerPath}",
+            "cStandard": "c11",
+            "cppStandard": "${env:defaultCppStandard}",
+            "intelliSenseMode": "linux-gcc-arm"
+        },
+        {
+            "name": "Switch",
+            "includePath": [
+                "${env:defaultIncludePath}",
+                "${env:hacIncludePaths}"
+            ],
+            "defines": [
+                "${env:defaultDefines}",
+                "${env:hacDefines}",
+                "__DEBUG__=0"
+            ],
+            "compilerPath": "${env:hacCompilerPath}",
+            "cStandard": "c11",
+            "cppStandard": "${env:defaultCppStandard}",
+            "intelliSenseMode": "linux-gcc-arm64"
+        },
+        {
+            "name": "Switch {Debug}",
+            "includePath": [
+                "${env:defaultIncludePath}",
+                "${env:hacIncludePaths}"
+            ],
+            "defines": [
+                "${env:defaultDefines}",
+                "${env:hacDefines}",
+                "__DEBUG__=1"
+            ],
+            "compilerPath": "${env:hacCompilerPath}",
+            "cStandard": "c11",
+            "cppStandard": "${env:defaultCppStandard}",
+            "intelliSenseMode": "linux-gcc-arm64"
+        },
+        {
+            "name": "Wii U",
+            "includePath": [
+                "${env:defaultIncludePath}",
+                "${env:cafeIncludePaths}"
+            ],
+            "defines": [
+                "${env:defaultDefines}",
+                "${env:cafeDefines}",
+                "__DEBUG__=0"
+            ],
+            "compilerPath": "${env:cafeCompilerPath}",
+            "cStandard": "c11",
+            "cppStandard": "${env:defaultCppStandard}",
+            "intelliSenseMode": "linux-gcc-arm"
+        },
+        {
+            "name": "Wii U {Debug}",
+            "includePath": [
+                "${env:defaultIncludePath}",
+                "${env:cafeIncludePaths}"
+            ],
+            "defines": [
+                "${env:defaultDefines}",
+                "${env:cafeDefines}",
+                "__DEBUG__=1"
+            ],
+            "compilerPath": "${env:cafeCompilerPath}",
+            "cStandard": "c11",
+            "cppStandard": "${env:defaultCppStandard}",
+            "intelliSenseMode": "linux-gcc-arm"
+        }
+    ],
+    "version": 4
+}

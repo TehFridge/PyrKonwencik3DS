@@ -40,7 +40,7 @@ GRAPHICS	:=	gfx
 ROMFS		:=	romfs
 GFXBUILD	:=	$(ROMFS)/gfx
 #---------------------------------------------------------------------------------
-APP_VER				:= 1
+APP_VER				:= 2048
 APP_TITLE			:= Pyrkonwencik3DS
 APP_DESCRIPTION		:= Pyrkonwencik na Nintendo 3DS
 APP_AUTHOR			:= TehFridge
@@ -58,18 +58,24 @@ RSF_PATH			:= meta/pyr.rsf
 #---------------------------------------------------------------------------------
 ARCH	:=	-march=armv6k -mtune=mpcore -mfloat-abi=hard -mtp=soft
 
-CFLAGS	:=	-g -Wall -O2 -mword-relocations \
-			-ffunction-sections \
-			$(ARCH)
+# CFLAGS	:=	-g -Wall -O0 -mword-relocations \
+# 			-ffunction-sections \
+# 			$(ARCH)
+CFLAGS := -g3 -Wall -O0 -mword-relocations $(ARCH) -fno-inline
+CXXFLAGS := $(CFLAGS) -fno-rtti -fno-exceptions -std=gnu++11 -fno-inline
 
-CFLAGS	+=	$(INCLUDE) -D__3DS__ `$(PREFIX)pkg-config vorbisidec --cflags`
 
-CXXFLAGS	:= $(CFLAGS) -fno-rtti -fno-exceptions -std=gnu++11
+CFLAGS	+=	$(INCLUDE) -D__3DS__ 
+
+# CXXFLAGS	:= $(CFLAGS) -fno-rtti -fno-exceptions -std=gnu++11
 
 ASFLAGS	:=	-g $(ARCH)
 LDFLAGS	=	-specs=3dsx.specs -g $(ARCH) -Wl,-Map,$(notdir $*.map)
 
-LIBS	:= `curl-config --libs` -lcitro2d -lcitro3d -lctru -lm `$(PREFIX)pkg-config vorbisidec --libs` -lcwav -lncsnd -ljansson 
+LIBS	:= `curl-config --libs` -lcitro2d -lcitro3d -lctru -lm -lcwav -lncsnd -ljansson 
+
+CFLAGS += -fno-inline -fno-omit-frame-pointer -fdebug-prefix-map=$(CURDIR)=.
+CXXFLAGS += -fno-inline -fno-omit-frame-pointer -fdebug-prefix-map=$(CURDIR)=.
 
 
 #---------------------------------------------------------------------------------

@@ -1,0 +1,21 @@
+{
+    "files.associations": {
+        "math.h": "c",
+        "stdlib.h": "c",
+        "citro2d.h": "c",
+        "types.h": "c",
+        "cwav_shit.h": "c",
+        "sprites.h": "c",
+        "assert.h": "c",
+        "curl.h": "c",
+        "request.h": "c",
+        "cstdlib": "cpp",
+        "setjmp.h": "c",
+        "synchronization.h": "c",
+        "grunio3.h": "c",
+        "scene_manager.h": "c",
+        "scene_mainmenu.h": "c",
+        "grunio3_game.h": "c",
+        "grunio1.h": "c"
+    }
+}
