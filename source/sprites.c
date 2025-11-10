@@ -2,6 +2,7 @@
 #include <time.h>
 #include "sprites.h"
 #include "global_parsing.h"
+#include "cwav_shit.h"
 //----------------------------------------
 C2D_Image couponbutton_pressed;
 C2D_Image couponbutton;
@@ -25,7 +26,11 @@ C2D_Image mapa3;
 C2D_Image mapa4;
 C2D_SpriteSheet scrollbarsheet;
 C2D_Image scrollbar;
+extern CWAVInfo cwavList[8];
+
+CWAV* sfx;
 void spritesInit(){
+    sfx = cwavList[2].cwav;
     time_t now = time(NULL); // Current date and time
     struct tm *today = localtime(&now);
 

@@ -13,7 +13,7 @@ typedef struct {
     CWAV* cwav;
 } CWAVInfo;
 
-extern CWAV* sfx;
+
 void populateCwavList();
 
 void freeCwavList();

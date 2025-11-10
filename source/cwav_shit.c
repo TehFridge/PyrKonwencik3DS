@@ -27,7 +27,7 @@ void print_u32_binary(u32 val) {
 
 CWAVInfo cwavList[8]; 
 int cwavCount = 0;
-CWAV* sfx = NULL;  
+// CWAV* sfx = NULL;  
 void populateCwavList() {
     for (u32 i = 0; i < sizeof(fileList) / sizeof(char*); i++) {
         CWAV* cwav = (CWAV*)malloc(sizeof(CWAV));

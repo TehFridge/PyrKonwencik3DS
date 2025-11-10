@@ -21,6 +21,7 @@ static SwkbdLearningData swkbdLearning;
 SwkbdButton button = SWKBD_BUTTON_NONE;
 bool didit = false;
 bool swkbdTriggered = false;
+
 void sceneProgramInit(void) {
 
 }

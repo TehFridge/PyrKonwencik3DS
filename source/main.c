@@ -37,7 +37,7 @@
 
 
 size_t totalsajz = 0;
-bool cpu_debug = true;
+bool cpu_debug = false;
 
 extern CWAVInfo cwavList[8];
 extern int cwavCount;
@@ -265,12 +265,13 @@ int main(int argc, char* argv[]) {
 	//przycskmachen = true;
     g_staticBuf = C2D_TextBufNew(256);
 
-	spritesInit();
 	
+	
+
+	populateCwavList();
+	spritesInit();
     buttonsy[0] = (Button){20, 35, 134, 179, couponbutton, couponbutton_pressed, false, 2, 7, 7, 7, 7, 1.0f, mapa};
 	buttonsy[1] = (Button){165, 35, 134, 179, progbutton, prog_pressed, false, 2, 7, 7, 7, 7, 1.0f, program_entry_selector};
-	populateCwavList();
-	
     isScrolling = false;
 	//C2D_TextParse(&g_staticText[16], g_staticBuf, "Ładowanie...");
 	//C2D_TextParse(&g_staticText[17], g_staticBuf, "Pobieranie z serwerów...");
@@ -280,7 +281,7 @@ int main(int argc, char* argv[]) {
 	// CWAV* menu = day ? cwavList[3].cwav : cwavList[5].cwav;
 	
 	
-	CWAV* sfx = cwavList[2].cwav;
+	
 	
 	bool fuckeduplel = false;
 	if (is_network_connected()) {

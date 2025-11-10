@@ -1,6 +1,7 @@
 
 #ifndef SPRITES_H
 #define SPRITES_H
+#include "cwav_shit.h"
 extern C2D_TextBuf g_staticBuf;
 extern C2D_Text g_staticText[100];
 extern C2D_Image couponbutton_pressed;
@@ -25,5 +26,6 @@ extern C2D_Image mapa3;
 extern C2D_Image mapa4; 
 extern C2D_SpriteSheet scrollbarsheet;
 extern C2D_Image scrollbar;
+extern CWAV* sfx;
 void spritesInit();
 #endif
