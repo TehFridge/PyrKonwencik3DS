@@ -51,7 +51,7 @@ void sceneTitleRender(void) {
     C2D_TargetClear(bottom, C2D_Color32f(1.0f, 1.0f, 1.0f, 1.0f));
     C2D_SceneBegin(bottom);
 	
-    drawShadowedText(&g_staticText[0], 160.0f, -currentY + 100.0f, 0.5f, 1.5f, 1.5f, C2D_Color32(76, 25, 102, 220), C2D_Color32(0xff, 0xff, 0xff, 0xff), false);
+    drawShadowedText(&g_staticText[0], 160.0f, -currentY + 100.0f, 0.5f, 1.5f, 1.5f, C2D_Color32(76, 25, 102, 220), C2D_Color32(0xff, 0xff, 0xff, 0xff), true);
 }
 
 void sceneTitleExit(void) {
