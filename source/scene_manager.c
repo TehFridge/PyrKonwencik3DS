@@ -1,6 +1,7 @@
 #include "scene_manager.h"
 #include "scene_mainmenu.h"
 #include "scene_logo.h"
+#include "scene_pass.h"
 #include "scene_program.h"
 #include "scene_title.h"
 #include "scene_mapa.h"
@@ -22,6 +23,7 @@ void sceneManagerUpdate(uint32_t kDown, uint32_t kHeld) {
         case SCENE_MAPA: sceneMapaUpdate(kDown, kHeld); break;
         case SCENE_TITLE: sceneTitleUpdate(kDown, kHeld); break;
         case SCENE_ENTRY: sceneEntryUpdate(kDown, kHeld); break;
+        case SCENE_PASS: scenePassUpdate(kDown, kHeld); break;
         default: break;
     }
 }
@@ -34,6 +36,7 @@ void sceneManagerRender(void) {
         case SCENE_MAPA: sceneMapaRender(); break;
         case SCENE_TITLE: sceneTitleRender(); break;
         case SCENE_ENTRY: sceneEntryRender(); break;
+        case SCENE_PASS: scenePassRender(); break;
         default: break;
     }
 }
@@ -47,6 +50,7 @@ void sceneManagerSwitchTo(SceneType nextScene) {
         case SCENE_MAPA: sceneMapaExit(); break;
         case SCENE_TITLE: sceneTitleExit(); break;
         case SCENE_ENTRY: sceneEntryExit(); break;
+        case SCENE_PASS: scenePassExit(); break;
         default: break;
     }
 
@@ -59,6 +63,7 @@ void sceneManagerSwitchTo(SceneType nextScene) {
         case SCENE_MAPA: sceneMapaInit(); break;
         case SCENE_TITLE: sceneTitleInit(); break;
         case SCENE_ENTRY: sceneEntryInit(); break;
+        case SCENE_PASS: scenePassInit(); break;
         default: break;
     }
 }

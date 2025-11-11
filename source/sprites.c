@@ -67,6 +67,9 @@ void spritesInit(){
 	C2D_TextParse(&g_staticText[13], g_staticBuf, "Select - Polub/Odlub");
 	C2D_TextParse(&g_staticText[14], g_staticBuf, "Szukane");
 	C2D_TextParse(&g_staticText[15], g_staticBuf, "Y - Wyszukaj");
+	for (int i = 0; i < 16; i++){
+		C2D_TextOptimize(&g_staticText[i]);
+	}
 	splash = C2D_SpriteSheetLoad("romfs:/gfx/splash.t3x");
 	background_top = C2D_SpriteSheetLoad("romfs:/gfx/bg.t3x");
 	logo = C2D_SpriteSheetLoad("romfs:/gfx/logo.t3x");

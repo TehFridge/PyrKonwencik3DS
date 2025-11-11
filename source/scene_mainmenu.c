@@ -32,7 +32,9 @@ void sceneMainMenuUpdate(uint32_t kDown, uint32_t kHeld) {
             elapsed += deltaTime;
         }
     }
-
+    // if (kDown & KEY_R) {
+    //     sceneManagerSwitchTo(SCENE_PASS);
+    // }
 }
 void sceneMainMenuRender(void) {
 

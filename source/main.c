@@ -37,7 +37,7 @@
 
 
 size_t totalsajz = 0;
-bool cpu_debug = false;
+bool cpu_debug = true;
 
 extern CWAVInfo cwavList[8];
 extern int cwavCount;
@@ -404,9 +404,10 @@ int main(int argc, char* argv[]) {
 				if (lastTouchY >= 0 && lastTouchX >= 0) {
 					int deltaY = currentTouchY - lastTouchY;
 					int deltaX = currentTouchX - lastTouchX;
+					float moveScale = 1.0f / scalemapa;  
+					textOffset  -= deltaY * moveScale;
+					textOffsetX -= deltaX * moveScale;
 
-					textOffset  -= (currentTouchY - lastTouchY) * scalemapa * 3;
-					textOffsetX -= (currentTouchX - lastTouchX) * scalemapa * 3;
 
 					if (textOffset < 0) textOffset = 0;
 					if (textOffsetX < 0) textOffsetX = 0;

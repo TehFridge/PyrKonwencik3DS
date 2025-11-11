@@ -9,7 +9,8 @@ typedef enum {
     SCENE_MAIN_MENU = 4,
     SCENE_PROGRAM = 6,
     SCENE_MAPA = 7,
-    SCENE_ENTRY = 8
+    SCENE_ENTRY = 8,
+    SCENE_PASS = 9
 } SceneType;
 
 #endif
